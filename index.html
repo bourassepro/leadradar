@@ -336,16 +336,37 @@ function filterLeads(filter, btn) {
 
 renderLeads('all');
 
-function handleSubmit() {
+async function handleSubmit() {
   const name = document.getElementById('fname').value.trim();
   const email = document.getElementById('femail').value.trim();
   const niche = document.getElementById('fniche').value;
   if (!name || !email || !niche) { alert('Please fill in all fields.'); return; }
   if (!email.includes('@')) { alert('Please enter a valid email.'); return; }
-  document.querySelector('.btn-submit').style.display = 'none';
-  document.getElementById('spotsLeft').style.display = 'none';
-  document.getElementById('successMsg').style.display = 'block';
-  window.location.href = `mailto:bourassepro@gmail.com?subject=LeadRadar Early Access - ${name}&body=Name: ${name}%0AEmail: ${email}%0ANiche: ${niche}`;
+
+  const btn = document.querySelector('.btn-submit');
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('https://formspree.io/f/xrejqgzo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ name, email, niche })
+    });
+    if (res.ok) {
+      btn.style.display = 'none';
+      document.getElementById('spotsLeft').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'block';
+    } else {
+      alert('Something went wrong. Please try again.');
+      btn.textContent = '🚀 Get Early Access — First Month Free';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    alert('Connection error. Please try again.');
+    btn.textContent = '🚀 Get Early Access — First Month Free';
+    btn.disabled = false;
+  }
 }
 </script>
 </body>
