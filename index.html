@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeadRadar — Hot B2B Leads from Reddit, Daily on Telegram</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #00ff88;
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #181818;
+    --border: #222222;
+    --text: #f0f0f0;
+    --muted: #888888;
+    --red: #ff5555;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; line-height: 1.6; }
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 2rem; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,10,0.95); backdrop-filter: blur(10px);
+  }
+  .logo { font-size: 1.3rem; font-weight: 700; color: var(--text); text-decoration: none; }
+  .logo span { color: var(--green); }
+  nav ul { list-style: none; display: flex; gap: 2rem; }
+  nav ul a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+  nav ul a:hover { color: var(--text); }
+  .nav-cta { background: var(--green); color: #000; font-weight: 700; padding: 0.5rem 1.2rem; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+  .hero { text-align: center; padding: 6rem 2rem 4rem; max-width: 800px; margin: 0 auto; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3);
+    color: var(--green); padding: 0.3rem 1rem; border-radius: 100px;
+    font-size: 0.78rem; font-weight: 600; margin-bottom: 2rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 1.5s infinite; flex-shrink:0; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 700; line-height: 1.15; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+  h1 em { color: var(--green); font-style: normal; }
+  .subtitle { font-size: 1.1rem; color: var(--muted); max-width: 560px; margin: 0 auto 2.5rem; line-height: 1.7; }
+  .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { background: var(--green); color: #000; font-weight: 700; padding: 0.85rem 2rem; border-radius: 8px; text-decoration: none; font-size: 1rem; transition: transform 0.2s, opacity 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+  .btn-primary:hover { transform: translateY(-2px); opacity: 0.9; }
+  .btn-secondary { background: transparent; color: var(--text); font-weight: 600; padding: 0.85rem 2rem; border-radius: 8px; text-decoration: none; font-size: 1rem; border: 1px solid var(--border); transition: border-color 0.2s, transform 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+  .btn-secondary:hover { border-color: var(--green); transform: translateY(-2px); }
+  .price-note { margin-top: 1.2rem; font-size: 0.85rem; color: var(--muted); }
+  .price-note s { color: #444; }
+  .price-note strong { color: var(--green); }
+  .stats { display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap; padding: 2.5rem 2rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); max-width: 700px; margin: 0 auto; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 1.8rem; font-weight: 700; color: var(--green); }
+  .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+  section { padding: 5rem 2rem; }
+  .section-label { text-align: center; font-size: 0.75rem; font-weight: 600; color: var(--green); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1rem; font-family: 'JetBrains Mono', monospace; }
+  h2 { text-align: center; font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 700; margin-bottom: 1rem; letter-spacing: -0.02em; }
+  .section-sub { text-align: center; color: var(--muted); margin-bottom: 3rem; }
+  .leads-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; max-width: 1000px; margin: 0 auto; }
+  .lead-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; transition: border-color 0.2s, transform 0.2s; }
+  .lead-card:hover { border-color: var(--green); transform: translateY(-3px); }
+  .lead-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; }
+  .lead-badge { font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.7rem; border-radius: 100px; font-family: 'JetBrains Mono', monospace; }
+  .b-fire { background: rgba(255,80,80,0.12); color: #ff7070; border: 1px solid rgba(255,80,80,0.3); }
+  .b-bolt { background: rgba(255,170,0,0.12); color: #ffaa00; border: 1px solid rgba(255,170,0,0.3); }
+  .b-search { background: rgba(100,160,255,0.12); color: #80b0ff; border: 1px solid rgba(100,160,255,0.3); }
+  .score-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; }
+  .s9 { background: rgba(255,80,80,0.12); color: #ff7070; border: 2px solid #ff7070; }
+  .s8 { background: rgba(255,170,0,0.12); color: #ffaa00; border: 2px solid #ffaa00; }
+  .s7 { background: rgba(0,255,136,0.12); color: var(--green); border: 2px solid var(--green); }
+  .lead-title { font-weight: 600; font-size: 0.92rem; margin-bottom: 0.8rem; line-height: 1.4; }
+  .lead-meta { display: flex; flex-direction: column; gap: 0.35rem; }
+  .meta-row { display: flex; gap: 0.5rem; font-size: 0.82rem; }
+  .meta-label { color: var(--muted); flex-shrink: 0; }
+  .meta-val { color: var(--text); }
+  .lead-footer { margin-top: 0.9rem; padding-top: 0.9rem; border-top: 1px solid var(--border); }
+  .view-btn { font-size: 0.78rem; color: var(--green); text-decoration: none; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; max-width: 800px; margin: 0 auto; }
+  .step { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+  .step-num { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--green); font-weight: 700; margin-bottom: 0.8rem; }
+  .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .step p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+  #pricing { background: var(--bg2); }
+  .pricing-card { max-width: 420px; margin: 0 auto; background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; text-align: center; position: relative; }
+  .pricing-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--green); border-radius: 16px 16px 0 0; }
+  .early-badge { display: inline-block; background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); color: var(--green); padding: 0.3rem 0.9rem; border-radius: 100px; font-size: 0.78rem; font-weight: 600; margin-bottom: 1.5rem; font-family: 'JetBrains Mono', monospace; }
+  .price-old { font-size: 1rem; color: var(--muted); text-decoration: line-through; margin-bottom: 0.3rem; }
+  .price-main { font-size: 3.5rem; font-weight: 700; color: var(--green); line-height: 1; margin-bottom: 0.3rem; }
+  .price-main sup { font-size: 1.5rem; vertical-align: top; margin-top: 0.8rem; display: inline-block; }
+  .price-main sub { font-size: 1rem; color: var(--muted); }
+  .price-period { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+  .features { list-style: none; margin-bottom: 2rem; text-align: left; }
+  .features li { display: flex; align-items: center; gap: 0.7rem; font-size: 0.9rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+  .features li:last-child { border-bottom: none; }
+  .features li::before { content: "✓"; color: var(--green); font-weight: 700; flex-shrink: 0; }
+  .spots-left { font-size: 0.8rem; color: var(--muted); margin-top: 1rem; font-family: 'JetBrains Mono', monospace; }
+  .spots-left strong { color: var(--red); }
+  .form-group { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1rem; }
+  .form-group input, .form-group select { background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; outline: none; width: 100%; transition: border-color 0.2s; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--green); }
+  .form-group input::placeholder { color: var(--muted); }
+  .form-group select option { background: var(--bg2); }
+  .btn-submit { width: 100%; background: var(--green); color: #000; font-weight: 700; padding: 0.9rem; border-radius: 8px; border: none; cursor: pointer; font-size: 1rem; font-family: 'Space Grotesk', sans-serif; transition: opacity 0.2s; }
+  .btn-submit:hover { opacity: 0.85; }
+  .success-msg { display: none; background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); color: var(--green); padding: 1rem; border-radius: 8px; font-size: 0.9rem; margin-top: 1rem; text-align: center; }
+  .dash-wrap { max-width: 900px; margin: 0 auto; background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .dash-header { background: var(--bg3); padding: 0.9rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; } .dot-y { background: #febc2e; } .dot-g { background: #28c840; }
+  .dash-title { margin-left: 0.5rem; font-size: 0.82rem; color: var(--muted); }
+  .dash-body { padding: 1.5rem; }
+  .dash-stats { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .dash-stat { background: var(--bg3); border: 1px solid var(--border); padding: 0.8rem 1.2rem; border-radius: 8px; flex: 1; min-width: 110px; }
+  .dash-val { font-size: 1.4rem; font-weight: 700; color: var(--green); font-family: 'JetBrains Mono', monospace; }
+  .dash-label { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
+  .filters { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+  .filter-btn { padding: 0.3rem 0.9rem; border-radius: 100px; font-size: 0.78rem; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.2s; font-family: 'Space Grotesk', sans-serif; }
+  .filter-btn.active, .filter-btn:hover { border-color: var(--green); color: var(--green); background: rgba(0,255,136,0.08); }
+  .mini-leads { display: flex; flex-direction: column; gap: 0.7rem; }
+  .mini-lead { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 1rem; display: flex; align-items: flex-start; gap: 1rem; transition: border-color 0.2s; }
+  .mini-lead:hover { border-color: var(--green); }
+  .mini-score { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; }
+  .mini-content { flex: 1; }
+  .mini-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .mini-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .mini-tag { font-size: 0.68rem; padding: 0.15rem 0.5rem; border-radius: 100px; border: 1px solid var(--border); color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .mini-reddit-btn { font-size: 0.72rem; color: var(--green); text-decoration: none; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  footer { text-align: center; padding: 2.5rem 2rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem; }
+  @media (max-width: 600px) { nav ul { display: none; } .stats { gap: 1.5rem; } .pricing-card { padding: 1.5rem; } h1 { font-size: 2rem; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="logo">Lead<span>Radar</span></a>
+  <ul>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#examples">Examples</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#dashboard">Live Demo</a></li>
+  </ul>
+  <a href="#pricing" class="nav-cta">🚀 Get Early Access</a>
+</nav>
+
+<div class="hero">
+  <div class="badge"><span class="pulse"></span> AI-powered Reddit lead generation</div>
+  <h1>Get Fresh B2B Leads from Reddit —<br><em>Every Day on Telegram</em></h1>
+  <p class="subtitle">AI scans Reddit 24/7 and finds people actively looking for tools like yours. You get scored leads with pain points and budget — straight to Telegram.</p>
+  <div class="hero-btns">
+    <a href="#pricing" class="btn-primary">🚀 Get Early Access — First Month Free</a>
+    <a href="#dashboard" class="btn-secondary">View Live Demo →</a>
+  </div>
+  <p class="price-note"><s>$29/month</s> → <strong>$19/month Early Bird</strong> · No credit card needed · Cancel anytime</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num">5–10</div><div class="stat-label">Hot leads/day</div></div>
+  <div class="stat"><div class="stat-num">AI</div><div class="stat-label">Scored 1–10</div></div>
+  <div class="stat"><div class="stat-num">2×</div><div class="stat-label">Daily scan</div></div>
+  <div class="stat"><div class="stat-num">Telegram</div><div class="stat-label">Instant delivery</div></div>
+</div>
+
+<section id="examples">
+  <p class="section-label">// Real examples</p>
+  <h2>Leads that land in your Telegram</h2>
+  <p class="section-sub">Every lead is AI-analyzed with pain point, urgency, and budget signal.</p>
+  <div class="leads-grid">
+    <div class="lead-card">
+      <div class="lead-header"><span class="lead-badge b-fire">🔥 Immediate</span><div class="score-circle s9">9/10</div></div>
+      <div class="lead-title">Canadian salon owners — what booking software are you happy with? (Vagaro frustrations after 7 years)</div>
+      <div class="lead-meta">
+        <div class="meta-row"><span class="meta-label">👤</span><span class="meta-val">u/FollowingHonest892 · r/smallbusiness</span></div>
+        <div class="meta-row"><span class="meta-label">🔄</span><span class="meta-val">Looking for alternative</span></div>
+        <div class="meta-row"><span class="meta-label">😣</span><span class="meta-val">Frustrated with Vagaro after 7+ years, actively switching</span></div>
+        <div class="meta-row"><span class="meta-label">💵</span><span class="meta-val">Medium $50–200/mo</span></div>
+      </div>
+      <div class="lead-footer"><a href="https://www.reddit.com/r/smallbusiness/comments/1smdn0h/" class="view-btn" target="_blank">→ View on Reddit</a></div>
+    </div>
+    <div class="lead-card">
+      <div class="lead-header"><span class="lead-badge b-bolt">⚡ Short-term</span><div class="score-circle s8">8/10</div></div>
+      <div class="lead-title">Looking for fast and easy ways to build landing pages — what tools have worked for you?</div>
+      <div class="lead-meta">
+        <div class="meta-row"><span class="meta-label">👤</span><span class="meta-val">u/Odd_Fudge_4867 · r/smallbusiness</span></div>
+        <div class="meta-row"><span class="meta-label">⚖️</span><span class="meta-val">Tool comparison</span></div>
+        <div class="meta-row"><span class="meta-label">😣</span><span class="meta-val">Launching a campaign, needs landing page builder ASAP</span></div>
+        <div class="meta-row"><span class="meta-label">💵</span><span class="meta-val">Small under $50/mo</span></div>
+      </div>
+      <div class="lead-footer"><a href="https://www.reddit.com/r/smallbusiness/comments/1smty70/" class="view-btn" target="_blank">→ View on Reddit</a></div>
+    </div>
+    <div class="lead-card">
+      <div class="lead-header"><span class="lead-badge b-search">🔍 Researching</span><div class="score-circle s7">8/10</div></div>
+      <div class="lead-title">What do you use for collecting reviews? Looking for a reliable solution for my SaaS</div>
+      <div class="lead-meta">
+        <div class="meta-row"><span class="meta-label">👤</span><span class="meta-val">u/wanoo21 · r/SaaS</span></div>
+        <div class="meta-row"><span class="meta-label">🔄</span><span class="meta-val">Looking for alternative</span></div>
+        <div class="meta-row"><span class="meta-label">😣</span><span class="meta-val">No review system, needs social proof for SaaS growth</span></div>
+        <div class="meta-row"><span class="meta-label">💵</span><span class="meta-val">Small under $50/mo</span></div>
+      </div>
+      <div class="lead-footer"><a href="https://www.reddit.com/r/SaaS/comments/1sns1au/" class="view-btn" target="_blank">→ View on Reddit</a></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" style="background: var(--bg2);">
+  <p class="section-label">// How it works</p>
+  <h2>Set up once, get leads forever</h2>
+  <p class="section-sub">No dashboard to check. Leads come to you.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">STEP 01</div>
+      <h3>🤖 AI scans Reddit</h3>
+      <p>Every 12 hours, we scan 14 subreddits with smart keywords to find people actively seeking SaaS solutions.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">STEP 02</div>
+      <h3>📊 Lead scoring</h3>
+      <p>Each post is analyzed by AI: opportunity score 1–10, urgency, pain point, and budget signal extracted automatically.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">STEP 03</div>
+      <h3>📱 Telegram delivery</h3>
+      <p>Only leads scoring 8+ land in your Telegram — pre-analyzed and ready for outreach. No noise, no spam.</p>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <p class="section-label">// Pricing</p>
+  <h2>Simple pricing</h2>
+  <p class="section-sub">Early bird offer — limited to first 5 customers only</p>
+  <div class="pricing-card">
+    <div class="early-badge">🎯 Early Bird — 5 spots only</div>
+    <div class="price-old">$29/month</div>
+    <div class="price-main"><sup>$</sup>19<sub>/mo</sub></div>
+    <div class="price-period">First month FREE · then $19/month · Cancel anytime</div>
+    <ul class="features">
+      <li>5–10 hot leads per day</li>
+      <li>AI scoring + pain point analysis</li>
+      <li>Telegram delivery (instant)</li>
+      <li>Urgency &amp; budget signals</li>
+      <li>Direct Reddit link per lead</li>
+      <li>14 subreddits monitored</li>
+    </ul>
+    <div class="form-group">
+      <input type="text" id="fname" placeholder="Your name" />
+      <input type="email" id="femail" placeholder="Your email" />
+      <select id="fniche">
+        <option value="" disabled selected>Your niche / industry</option>
+        <option>SaaS / Software</option>
+        <option>Marketing / Agency</option>
+        <option>E-commerce</option>
+        <option>Freelance / Consulting</option>
+        <option>No-code / Automation</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <button class="btn-submit" onclick="handleSubmit()">🚀 Get Early Access — First Month Free</button>
+    <div class="spots-left" id="spotsLeft">⚠️ <strong>3 of 5 spots remaining</strong> · No credit card required</div>
+    <div class="success-msg" id="successMsg">✅ You're on the list! We'll reach out within 24h to set up your Telegram feed.</div>
+  </div>
+</section>
+
+<section id="dashboard">
+  <p class="section-label">// Live demo</p>
+  <h2>Your lead dashboard</h2>
+  <p class="section-sub">This is what your daily leads look like — real data from our scans.</p>
+  <div class="dash-wrap">
+    <div class="dash-header">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span class="dash-title">LeadRadar Dashboard — Demo Mode</span>
+    </div>
+    <div class="dash-body">
+      <div class="dash-stats">
+        <div class="dash-stat"><div class="dash-val">22</div><div class="dash-label">Total Leads</div></div>
+        <div class="dash-stat"><div class="dash-val">8</div><div class="dash-label">This Week</div></div>
+        <div class="dash-stat"><div class="dash-val">8.1</div><div class="dash-label">Avg Score</div></div>
+        <div class="dash-stat"><div class="dash-val">Alt</div><div class="dash-label">Top Type</div></div>
+      </div>
+      <div class="filters">
+        <button class="filter-btn active" onclick="filterLeads('all',this)">All</button>
+        <button class="filter-btn" onclick="filterLeads('Immediate',this)">🔥 Immediate</button>
+        <button class="filter-btn" onclick="filterLeads('Short-term',this)">⚡ Short-term</button>
+        <button class="filter-btn" onclick="filterLeads('Researching',this)">🔍 Researching</button>
+      </div>
+      <div class="mini-leads" id="leadsContainer"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p style="margin-bottom:0.5rem"><strong style="color:var(--green)">LeadRadar</strong> — AI-powered Reddit lead generation</p>
+  <p>Built for SaaS founders · $19/month · <a href="#pricing" style="color:var(--green)">Get early access</a></p>
+</footer>
+
+<script>
+const leads = [
+  { title: "Canadian salon owners — what booking software are you happy with? (Vagaro frustrations)", user: "u/FollowingHonest892", urgency: "Immediate", type: "Looking for alternative", score: 9, subreddit: "r/smallbusiness", url: "https://www.reddit.com/r/smallbusiness/comments/1smdn0h/" },
+  { title: "Looking for fast and easy ways to build landing pages — what tools have worked?", user: "u/Odd_Fudge_4867", urgency: "Short-term", type: "Tool comparison", score: 8, subreddit: "r/smallbusiness", url: "https://www.reddit.com/r/smallbusiness/comments/1smty70/" },
+  { title: "What do you use for collecting reviews? Looking for a reliable solution", user: "u/wanoo21", urgency: "Researching", type: "Looking for alternative", score: 8, subreddit: "r/SaaS", url: "https://www.reddit.com/r/SaaS/comments/1sns1au/" },
+  { title: "Salon booking software advice — trying to avoid Acuity pricing", user: "u/FollowingHonest892", urgency: "Researching", type: "Tool comparison", score: 8, subreddit: "r/smallbusiness", url: "#" },
+  { title: "Looking for online scheduling options for my small team", user: "u/NeonRaggie", urgency: "Short-term", type: "Tool comparison", score: 8, subreddit: "r/smallbusiness", url: "#" },
+  { title: "Feels like AI tools are priced wrong — why everything subscription?", user: "u/No-Poetry-2025", urgency: "Researching", type: "Pricing frustration", score: 8, subreddit: "r/SaaS", url: "#" },
+];
+
+function scoreClass(s) { return s >= 9 ? 's9' : s >= 8 ? 's8' : 's7'; }
+function urgencyEmoji(u) { return u === 'Immediate' ? '🔥' : u === 'Short-term' ? '⚡' : '🔍'; }
+
+function renderLeads(filter) {
+  const c = document.getElementById('leadsContainer');
+  const filtered = filter === 'all' ? leads : leads.filter(l => l.urgency === filter);
+  c.innerHTML = filtered.map(l => `
+    <div class="mini-lead">
+      <div class="mini-score ${scoreClass(l.score)}">${l.score}/10</div>
+      <div class="mini-content">
+        <div class="mini-title">${l.title}</div>
+        <div class="mini-tags">
+          <span class="mini-tag">${l.user}</span>
+          <span class="mini-tag">${l.subreddit}</span>
+          <span class="mini-tag">${l.type}</span>
+          <span class="mini-tag" style="background:rgba(0,255,136,0.08);color:var(--green);border-color:rgba(0,255,136,0.25)">${urgencyEmoji(l.urgency)} ${l.urgency}</span>
+        </div>
+      </div>
+      <a href="${l.url}" class="mini-reddit-btn" target="_blank">→ Reddit</a>
+    </div>`).join('');
+}
+
+function filterLeads(filter, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeads(filter);
+}
+
+renderLeads('all');
+
+function handleSubmit() {
+  const name = document.getElementById('fname').value.trim();
+  const email = document.getElementById('femail').value.trim();
+  const niche = document.getElementById('fniche').value;
+  if (!name || !email || !niche) { alert('Please fill in all fields.'); return; }
+  if (!email.includes('@')) { alert('Please enter a valid email.'); return; }
+  document.querySelector('.btn-submit').style.display = 'none';
+  document.getElementById('spotsLeft').style.display = 'none';
+  document.getElementById('successMsg').style.display = 'block';
+  window.location.href = `mailto:bourassepro@gmail.com?subject=LeadRadar Early Access - ${name}&body=Name: ${name}%0AEmail: ${email}%0ANiche: ${niche}`;
+}
+</script>
+</body>
+</html>
